@@ -21,15 +21,15 @@
 		License.
 -->
     
-<book lang="ko">
+<book lang="en">
 	<title>Anyframe Query Ria Plugin</title>
 	
 	<bookinfo>
 		<copyright>
 			<year>2007-2011</year>
-			<holder>삼성SDS</holder>
+			<holder>Samsung SDS</holder>
 		</copyright>
-		<releaseinfo>Version 1.0.0</releaseinfo>
+		<releaseinfo>Version 1.0.2</releaseinfo>
 
 		<productname>Anyframe Query Ria Plugin</productname>
 
@@ -44,9 +44,9 @@
 			</imageobject>
 		</mediaobject>
 		<legalnotice>
-			<para>본 문서의 저작권은 삼성SDS에 있으며 Anyframe 오픈소스 커뮤니티 활동의 목적하에서 자유로운 이용이 가능합니다.
-			본 문서를 복제, 배포할 경우에는 저작권자를 명시하여 주시기 바라며 본 문서를 변경하실 경우에는 원문과 변경된 내용을 표시하여 주시기 바랍니다. 
-			원문과 변경된 문서에 대한 상업적 용도의 활용은 허용되지 않습니다. 본 문서에 오류가 있다고 판단될 경우 이슈로 등록해 주시면 적절한 조치를 취하도록 하겠습니다.
+			<para>The copyright of this document is owned by Samsung SDS. This document can be used freely only for the purpose of open source community activities.
+                The copyright holder should be clearly stated in case this document is copied or distributed, and any changed content should be specified.
+                Commercial use of the original document and the modified document is not allowed. Should there be parts considered to have errors in this document, please register the issue for which we will take proper action.
 			</para>
 		</legalnotice>
 	</bookinfo>
@@ -55,15 +55,14 @@
 		<title>Introduction</title>
 		<partintro id="query_ria_introduction_part_intro">
 			<para>
-				query-ria plugin은 MiPlatform, XPlatform, Gauce등의 Ria Platform을 사용해 UI를 개발하고 Query Service를 활용하여 데이터 접근 레이어를 개발하는 경우 
-				UI에 종속된 데이터 포멧을 별도의 컨버전 과정없이 DB에 반영하기 위해 필요한 공통 API를 제공하는 Query Ria 서비스와 Query Ria 서비스 실행에 필요한 참조 라이브러리들로 
-				구성되어 있다.
+				query-ria plugin is composed of Query Ria Service that provides a common API necessary to reflect the data format subordinate to UI in DB without separate conversion process when UI is developed using Ria Platform such as MiPlatform, XPlatform and Gauce and data access layers are developed using Query Service, and reference libraries necessary to execute Query Ria Service.  
+				
 			</para>
 			<para role="introduction_title"><emphasis role="bold">Installation</emphasis></para>
-			<para>Command 창에서 다음과 같이 명령어를 입력하여 query-ria-plugin을 설치한다.</para>
+			<para>Install query-ria-plugin by entering the following command in the Command window.</para>
 			<programlisting language="java"><![CDATA[mvn anyframe:install -Dname=query-ria]]></programlisting>
 			<para>
-				installed(mvn anyframe:installed) 혹은 jetty:run(mvn clean jetty:run) command를 이용하여 설치 결과를 확인해볼 수 있다. 
+				The installation result can be checked using the installed (mvn anyframe:installed) or the jetty:run (mvn clean jetty:run) commands. 
 			</para>
 			<para role="introduction_title"><emphasis role="bold">Dependent Plugins</emphasis></para>
 			<informaltable>
@@ -78,7 +77,7 @@
 					</thead>
 					<tbody>
 						<row>
-							<entry align="center"><ulink url="http://dev.anyframejava.org/docs/anyframe/plugin/query/1.0.0/reference/htmlsingle/query.html">Query</ulink></entry>
+							<entry align="center"><ulink url="http://dev.anyframejava.org/docs.en/anyframe/plugin/optional/query/1.1.2/reference/htmlsingle/query.html">Query</ulink></entry>
 							<entry align="center" valign="middle">2.0.0 > *</entry>
 						</row>
 					</tbody>

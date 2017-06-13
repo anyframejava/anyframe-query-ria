@@ -4,6 +4,10 @@
 <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
 <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
 <wb-resource deploy-path="/" source-path="/src/main/webapp"/>
+<wb-resource deploy-path="/WEB-INF/classes" source-path="/src/test/resources"/>
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/anyframe-query-ria/anyframe-query-ria">
+<dependency-type>uses</dependency-type>
+</dependent-module>
 <property name="java-output-path"/>
 <property name="context-root" value="anyframe-query-ria-pi"/>
 </wb-module>

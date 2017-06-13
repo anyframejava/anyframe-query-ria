@@ -47,15 +47,14 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  */
 public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 
-    /**
-     * @param resourceLoader
-     *        the resourceLoader to set
-     */
-    public void setResourceLoader(ResourceLoader resourceLoader) {
-        this.resourceLoader = resourceLoader;
-    }
-    
-    
+	/**
+	 * @param resourceLoader
+	 *            the resourceLoader to set
+	 */
+	public void setResourceLoader(ResourceLoader resourceLoader) {
+		this.resourceLoader = resourceLoader;
+	}
+
 	public void afterPropertiesSet() throws Exception {
 		initializeVelocity();
 		if (namedParamJdbcTemplate.getPagingJdbcTemplate()
@@ -65,37 +64,38 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 							+ "So, you must specify a proper pagingSQLGenerator in PagingJdbcTemplate configuration. "
 							+ "If you can't find a proper pagingSQLGenerator, you can define a DefaultPagingSQLGenerator as pagingSQLGenerator."
 							+ "But you must read notice of that class before using a DefaultPagingSQLGenerator.");
-			throw new QueryServiceException("Query Service : pagingSQLGenerator needs to be defined for PagingJdbcTemplate. \n So, you must specify a proper pagingSQLGenerator in PagingJdbcTemplate configuration. \n If you can't find a proper pagingSQLGenerator, you can define a DefaultPagingSQLGenerator as pagingSQLGenerator. \n But you must read notice of that class before using a DefaultPagingSQLGenerator.");
+			throw new QueryServiceException(
+					"Query Service : pagingSQLGenerator needs to be defined for PagingJdbcTemplate. \n So, you must specify a proper pagingSQLGenerator in PagingJdbcTemplate configuration. \n If you can't find a proper pagingSQLGenerator, you can define a DefaultPagingSQLGenerator as pagingSQLGenerator. \n But you must read notice of that class before using a DefaultPagingSQLGenerator.");
 		}
 	}
-	
-    public void initializeVelocity() throws Exception {
-        try {
-            // velocityPropsFilename 속성이 정의되어 있지 않은
-            // 경우에는 Velocity Log 파일 생성하지 않음.
-            if (StringUtil.isEmpty(propsFilename)) {
-                Velocity.addProperty("runtime.log.logsystem.class",
-                    "org.apache.velocity.runtime.log.NullLogSystem");
-                Velocity.init();
-            } else {
-                Resource[] resources =
-                    ((ResourcePatternResolver) resourceLoader)
-                        .getResources(propsFilename);
 
-                File velocityLogFile = resources[0].getFile();
-                if (velocityLogFile.exists()) {
-                    Velocity.addProperty("runtime.log", velocityLogFile
-                        .getAbsolutePath());
-                    Velocity.init();
-                } else
-                    throw new Exception("Velocity log file doesn't exists.");
-            }
-        } catch (Exception e) {
-            QueryService.LOGGER.error("Query Service : Fail to initialize Velocity.", e);
-            throw new Exception("Query Service : Fail to initialize Velocity.",
-                e);
-        }
-    }	
+	public void initializeVelocity() throws Exception {
+		try {
+			// In the case where velocityPropsFilename property is defined,
+			// Velocity Log file is not created.
+			if (StringUtil.isEmpty(propsFilename)) {
+				Velocity.addProperty("runtime.log.logsystem.class",
+						"org.apache.velocity.runtime.log.NullLogSystem");
+				Velocity.init();
+			} else {
+				Resource[] resources = ((ResourcePatternResolver) resourceLoader)
+						.getResources(propsFilename);
+
+				File velocityLogFile = resources[0].getFile();
+				if (velocityLogFile.exists()) {
+					Velocity.addProperty("runtime.log",
+							velocityLogFile.getAbsolutePath());
+					Velocity.init();
+				} else
+					throw new Exception("Velocity log file doesn't exists.");
+			}
+		} catch (Exception e) {
+			QueryService.LOGGER.error(
+					"Query Service : Fail to initialize Velocity.", e);
+			throw new Exception("Query Service : Fail to initialize Velocity.",
+					e);
+		}
+	}
 
 	public void containesQueryId(String queryId) throws QueryServiceException {
 		super.containesQueryId(queryId);
@@ -135,16 +135,16 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 			final RowMetadataCallbackHandler rowCallbackHandler,
 			final Pagination pagination) throws Exception {
 		jdbcCommonProcess(queryId, params, new JDBCInternalTask() {
-			public Object processTask(String sql, int maxFetchSize, 
+			public Object processTask(String sql, int maxFetchSize,
 					SqlParameterSource searchParams) throws Exception {
-				
+
 				rowCallbackHandler.setLobHandler(getLobHandler());
 				rowCallbackHandler.setNullCheckInfos(getSqlRepository()
 						.getNullCheck());
 				rowCallbackHandler.setPagination(pagination);
 
-				getNamedParamJdbcTemplate().query(sql, maxFetchSize, searchParams,
-						rowCallbackHandler, pagination);
+				getNamedParamJdbcTemplate().query(sql, maxFetchSize,
+						searchParams, rowCallbackHandler, pagination);
 				return null;
 			}
 		});
@@ -152,7 +152,7 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 
 	protected int update(String queryId, DefaultDynamicSqlParameterSource params)
 			throws QueryServiceException {
-		Integer resultCount = (Integer) jdbcCommonProcess(queryId, params, 
+		Integer resultCount = (Integer) jdbcCommonProcess(queryId, params,
 				new JDBCInternalTask() {
 					public Object processTask(String sql, int maxFetchSize,
 							SqlParameterSource searchParams) {
@@ -196,13 +196,14 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 			callableStatementCallbackHandler.setLobHandler(getLobHandler());
 		}
 
-		return getNamedParamJdbcTemplate().execute(
-				new CallableStatementCreatorFactory(sql, paramList)
-						.newCallableStatementCreator(paramMap),
-				callableStatementCallbackHandler);
+		return getNamedParamJdbcTemplate()
+				.execute(
+						new CallableStatementCreatorFactory(sql, paramList)
+								.newCallableStatementCreator(paramMap),
+						callableStatementCallbackHandler);
 	}
 
-	protected Object jdbcCommonProcess(String queryId, 
+	protected Object jdbcCommonProcess(String queryId,
 			DefaultDynamicSqlParameterSource params,
 			JDBCInternalTask internalTask) throws QueryServiceException {
 		String sql = "";
@@ -212,17 +213,19 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 			boolean isDynamic = getSqlRepository().isDynamicQueryStatement(
 					queryId);
 			if (!isDynamic)
-				throw new QueryServiceException("Query Service : queryId ["+ queryId + "] is not dynamic statements.");
+				throw new QueryServiceException("Query Service : queryId ["
+						+ queryId + "] is not dynamic statements.");
 
 			QueryInfo queryInfo = (QueryInfo) getSqlRepository()
 					.getQueryInfos().get(queryId);
 
 			int queryMaxFetchSize = queryInfo.getMaxFetchSize();
-			
-			if(queryMaxFetchSize == -1){
-				queryMaxFetchSize = getNamedParamJdbcTemplate().getMaxFetchSize();
+
+			if (queryMaxFetchSize == -1) {
+				queryMaxFetchSize = getNamedParamJdbcTemplate()
+						.getMaxFetchSize();
 			}
-			
+
 			Map properties = generatePropertiesMap(null, null, params);
 
 			if (properties == null)
@@ -240,7 +243,7 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 				sql = writer.toString();
 			}
 
-			return internalTask.processTask(sql, queryMaxFetchSize,  params);
+			return internalTask.processTask(sql, queryMaxFetchSize, params);
 		} catch (Exception e) {
 			throw processException("execute query using RIA QueryService", sql,
 					e);
@@ -248,8 +251,8 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 	}
 
 	interface JDBCInternalTask {
-		Object processTask(String sql, int maxFetchSize, SqlParameterSource searchParams)
-				throws Exception;
+		Object processTask(String sql, int maxFetchSize,
+				SqlParameterSource searchParams) throws Exception;
 	}
 
 	protected abstract Map generatePropertiesMap(Object[] values, int[] types,

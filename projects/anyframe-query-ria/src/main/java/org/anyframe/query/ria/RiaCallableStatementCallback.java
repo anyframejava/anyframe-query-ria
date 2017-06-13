@@ -24,7 +24,7 @@ import org.springframework.jdbc.support.lob.LobHandler;
  * @author JongHoon Kim
  */
 public interface RiaCallableStatementCallback extends CallableStatementCallback{
-	//Orale일 경우 CUSOR의 sqlType는 -10
+	//In the case of Oracle, CUSOR sqlType is -10.
 	public final int CUSOR = -10; 
 	public void setSQLParams(ArrayList sqlOutParmas);
 	public void setQueryInfo(QueryInfo queryInfo);
