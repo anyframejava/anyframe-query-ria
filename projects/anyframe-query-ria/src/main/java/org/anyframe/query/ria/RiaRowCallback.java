@@ -18,22 +18,23 @@ package org.anyframe.query.ria;
 import org.anyframe.query.QueryInfo;
 import org.anyframe.query.RowMetadataCallbackHandler;
 import org.anyframe.query.impl.Pagination;
+
 /**
  * @author JongHoon Kim
  */
 public interface RiaRowCallback extends RowMetadataCallbackHandler {
 
 	/**
-	 * set paging information for IRiaQueryService
+	 * set paging information for RiaQueryService
 	 * 
 	 * @param pagination
 	 */
 	void setPagination(Pagination pagination);
-	
+
 	void setDataSet(Object dataset);
-	
-	public void setQueryInfo( QueryInfo queryInfo);
-	
+
+	public void setQueryInfo(QueryInfo queryInfo);
+
 	public boolean isNeedColumnInfo();
 
 	public void setNeedColumnInfo(boolean needColumnInfo);

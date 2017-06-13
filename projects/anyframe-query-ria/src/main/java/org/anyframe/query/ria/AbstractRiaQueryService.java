@@ -19,13 +19,16 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.anyframe.exception.ConfigurationException;
+import org.anyframe.exception.InitializationException;
 import org.anyframe.query.QueryInfo;
 import org.anyframe.query.QueryService;
-import org.anyframe.query.QueryServiceException;
 import org.anyframe.query.RowMetadataCallbackHandler;
+import org.anyframe.query.exception.QueryException;
 import org.anyframe.query.impl.LiveScrollPagination;
 import org.anyframe.query.impl.Pagination;
 import org.anyframe.query.impl.QueryServiceImpl;
@@ -54,7 +57,7 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 		this.resourceLoader = resourceLoader;
 	}
 
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		initializeVelocity();
 		if (namedParamJdbcTemplate.getPagingJdbcTemplate()
 				.getPaginationSQLGetter() == null) {
@@ -63,12 +66,12 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 							+ "So, you must specify a proper pagingSQLGenerator in PagingJdbcTemplate configuration. "
 							+ "If you can't find a proper pagingSQLGenerator, you can define a DefaultPagingSQLGenerator as pagingSQLGenerator."
 							+ "But you must read notice of that class before using a DefaultPagingSQLGenerator.");
-			throw new QueryServiceException(
+			throw new ConfigurationException(
 					"Query Service : pagingSQLGenerator needs to be defined for PagingJdbcTemplate. \n So, you must specify a proper pagingSQLGenerator in PagingJdbcTemplate configuration. \n If you can't find a proper pagingSQLGenerator, you can define a DefaultPagingSQLGenerator as pagingSQLGenerator. \n But you must read notice of that class before using a DefaultPagingSQLGenerator.");
 		}
 	}
 
-	public void initializeVelocity() throws Exception {
+	public void initializeVelocity() {
 		try {
 			// In the case where velocityPropsFilename property is defined,
 			// Velocity Log file is not created.
@@ -82,27 +85,29 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 
 				File velocityLogFile = resources[0].getFile();
 				if (velocityLogFile.exists()) {
-					Velocity.addProperty("runtime.log",
-							velocityLogFile.getAbsolutePath());
+					Velocity.addProperty("runtime.log", velocityLogFile
+							.getAbsolutePath());
 					Velocity.init();
 				} else
-					throw new Exception("Velocity log file doesn't exists.");
+					throw new InitializationException(
+							"Velocity log file doesn't exists.");
 			}
 		} catch (Exception e) {
 			QueryService.LOGGER.error(
 					"Query Service : Fail to initialize Velocity.", e);
-			throw new Exception("Query Service : Fail to initialize Velocity.",
-					e);
+			throw new InitializationException(
+					"Query Service : Fail to initialize Velocity.", e);
 		}
 	}
 
-	public void containesQueryId(String queryId) throws QueryServiceException {
+	public void containesQueryId(String queryId) {
 		super.containesQueryId(queryId);
 	}
 
 	protected void search(String queryId,
 			DefaultDynamicSqlParameterSource params,
-			RowMetadataCallbackHandler rowCallbackHandler) throws Exception {
+			RowMetadataCallbackHandler rowCallbackHandler)
+			throws QueryException {
 		Pagination pagination = new Pagination(0);
 		pagination.setPaging(false);
 		pagination.setPageIndex(0);
@@ -112,7 +117,7 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 	protected void search(String queryId,
 			DefaultDynamicSqlParameterSource params,
 			RowMetadataCallbackHandler rowCallbackHandler, int pageIndex,
-			int pageSize) throws Exception {
+			int pageSize) throws QueryException {
 		Pagination pagination = new Pagination(pageSize);
 		pagination.setCountRecordSize(true);
 		pagination.setPageIndex(pageIndex);
@@ -122,7 +127,7 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 	protected void searchLive(String queryId,
 			DefaultDynamicSqlParameterSource params,
 			RowMetadataCallbackHandler rowCallbackHandler, int startIndex,
-			int pageSize) throws Exception {
+			int pageSize) throws QueryException {
 		LiveScrollPagination liveScrollPagination = new LiveScrollPagination();
 		liveScrollPagination.setPageSize(pageSize);
 		liveScrollPagination.setStartIndex(startIndex);
@@ -132,7 +137,7 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 	protected void search(String queryId,
 			DefaultDynamicSqlParameterSource params,
 			final RowMetadataCallbackHandler rowCallbackHandler,
-			final Pagination pagination) throws Exception {
+			final Pagination pagination) throws QueryException {
 		jdbcCommonProcess(queryId, params, new JDBCInternalTask() {
 			public Object processTask(String sql, int maxFetchSize,
 					SqlParameterSource searchParams) throws Exception {
@@ -150,7 +155,7 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 	}
 
 	protected int update(String queryId, DefaultDynamicSqlParameterSource params)
-			throws QueryServiceException {
+			throws QueryException {
 		Integer resultCount = (Integer) jdbcCommonProcess(queryId, params,
 				new JDBCInternalTask() {
 					public Object processTask(String sql, int maxFetchSize,
@@ -163,24 +168,54 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 		return resultCount.intValue();
 	}
 
+	/**
+	 * Execute batchUpdate method of Spring NamedParamJdbcTemplate.
+	 * 
+	 * @param queryId
+	 *            Query ID
+	 * @param targets
+	 *            Array of SqlParameterSource object
+	 * @return an array of the number of rows affected by each statement
+	 * @throws QueryException
+	 *             fail to execute batch-update
+	 */
+	protected int[] update(final String queryId,
+			final SqlParameterSource[] targets) throws QueryException {
+		QueryInfo queryInfo = null;
+		containesQueryId(queryId);
+		String sql = "";
+
+		boolean isDynamic = getSqlRepository().isDynamicQueryStatement(queryId);
+		if (!isDynamic)
+			throw new QueryException("Query Service : queryId [" + queryId
+					+ "] is not dynamic statements.");
+
+		try {
+			queryInfo = getSqlRepository().getQueryInfos().get(queryId);
+			sql = queryInfo.getQueryString();
+			return this.namedParamJdbcTemplate.batchUpdate(sql, targets);
+		} catch (Exception e) {
+			throw processException("batch update using RIA QueryService", sql,
+					e);
+		}
+	}
+
 	/* 2009.10.22 */
 	protected Object execute(String queryId,
 			DefaultDynamicSqlParameterSource params,
-			RiaCallableStatementCallback callableStatementCallbackHandler)
-			throws QueryServiceException {
+			RiaCallableStatementCallback callableStatementCallbackHandler) {
 
 		String sql = getSqlRepository().getQueryStatement(queryId);
-		QueryInfo queryInfo = (QueryInfo) getSqlRepository().getQueryInfos()
-				.get(queryId);
-		ArrayList paramList = (ArrayList) queryInfo.getSqlParameterList();
+		QueryInfo queryInfo = getSqlRepository().getQueryInfos().get(queryId);
+		List<SqlParameter> paramList = queryInfo.getSqlParameterList();
 
-		Map paramMap = new HashMap();
+		Map<String, Object> paramMap = new HashMap<String, Object>();
 		SqlParameter sqlParameter = null;
-		ArrayList sqlOutParams = new ArrayList();
+		List<SqlParameter> sqlOutParams = new ArrayList<SqlParameter>();
 
 		for (int i = 0; i < paramList.size(); i++) {
 			if (!(paramList.get(i) instanceof SqlOutParameter)) {
-				sqlParameter = (SqlParameter) paramList.get(i);
+				sqlParameter = paramList.get(i);
 				String paramName = sqlParameter.getName();
 				Object paramValue = params.getValue(paramName);
 				paramMap.put(paramName, paramValue);
@@ -190,21 +225,21 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 		}
 		callableStatementCallbackHandler.setSQLParams(paramList);
 		callableStatementCallbackHandler.setQueryInfo(queryInfo);
+		callableStatementCallbackHandler.setNullCheckInfos(getSqlRepository().getNullCheck());
 
 		if (getLobHandler() != null) {
 			callableStatementCallbackHandler.setLobHandler(getLobHandler());
 		}
 
-		return getNamedParamJdbcTemplate()
-				.execute(
-						new CallableStatementCreatorFactory(sql, paramList)
-								.newCallableStatementCreator(paramMap),
-						callableStatementCallbackHandler);
+		return getNamedParamJdbcTemplate().execute(
+				new CallableStatementCreatorFactory(sql, paramList)
+						.newCallableStatementCreator(paramMap),
+				callableStatementCallbackHandler);
 	}
 
 	protected Object jdbcCommonProcess(String queryId,
 			DefaultDynamicSqlParameterSource params,
-			JDBCInternalTask internalTask) throws QueryServiceException {
+			JDBCInternalTask internalTask) throws QueryException {
 		String sql = "";
 		try {
 			sql = getSqlRepository().getQueryStatement(queryId);
@@ -212,11 +247,11 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 			boolean isDynamic = getSqlRepository().isDynamicQueryStatement(
 					queryId);
 			if (!isDynamic)
-				throw new QueryServiceException("Query Service : queryId ["
-						+ queryId + "] is not dynamic statements.");
+				throw new QueryException("Query Service : queryId [" + queryId
+						+ "] is not dynamic statements.");
 
-			QueryInfo queryInfo = (QueryInfo) getSqlRepository()
-					.getQueryInfos().get(queryId);
+			QueryInfo queryInfo = getSqlRepository().getQueryInfos().get(
+					queryId);
 
 			int queryMaxFetchSize = queryInfo.getMaxFetchSize();
 
@@ -225,7 +260,8 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 						.getMaxFetchSize();
 			}
 
-			Map properties = generatePropertiesMap(null, null, params);
+			Map<Object, Object> properties = generatePropertiesMap(null, null,
+					params);
 
 			if (properties == null)
 				properties = new Properties();
@@ -254,7 +290,8 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 				SqlParameterSource searchParams) throws Exception;
 	}
 
-	protected abstract Map generatePropertiesMap(Object[] values, int[] types,
+	protected abstract Map<Object, Object> generatePropertiesMap(
+			Object[] values, int[] types,
 			DefaultDynamicSqlParameterSource sqlParameterSource)
-			throws QueryServiceException;
+			throws QueryException;
 }

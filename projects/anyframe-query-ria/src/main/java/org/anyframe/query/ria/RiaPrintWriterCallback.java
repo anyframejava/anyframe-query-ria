@@ -19,16 +19,17 @@ import java.io.PrintWriter;
 
 import org.anyframe.query.QueryInfo;
 import org.anyframe.query.RowMetadataCallbackHandler;
+
 /**
  * @author JongHoon Kim
  */
-public interface RiaPrintWriterCallback extends RowMetadataCallbackHandler{
-	
+public interface RiaPrintWriterCallback extends RowMetadataCallbackHandler {
+
 	public void setQueryInfo(QueryInfo queryInfo);
-	
+
 	public void setEncoding(String encoding);
-	
+
 	public String getEncoding();
-	
+
 	public void setPrintWriter(PrintWriter writer);
 }

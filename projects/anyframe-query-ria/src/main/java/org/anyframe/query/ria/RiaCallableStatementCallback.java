@@ -15,18 +15,27 @@
  */
 package org.anyframe.query.ria;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.anyframe.query.QueryInfo;
 import org.springframework.jdbc.core.CallableStatementCallback;
+import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.support.lob.LobHandler;
+
 /**
  * @author JongHoon Kim
  */
-public interface RiaCallableStatementCallback extends CallableStatementCallback{
-	//In the case of Oracle, CUSOR sqlType is -10.
-	public final int CUSOR = -10; 
-	public void setSQLParams(ArrayList sqlOutParmas);
+@SuppressWarnings("unchecked")
+public interface RiaCallableStatementCallback extends CallableStatementCallback {
+	// In the case of Oracle, CUSOR sqlType is -10.
+	public final int CUSOR = -10;
+
+	public void setSQLParams(List<SqlParameter> sqlOutParmas);
+
 	public void setQueryInfo(QueryInfo queryInfo);
+
 	public void setLobHandler(LobHandler lobHandler);
+	
+	public void setNullCheckInfos(Map<String, String> nullCheckInfos);
 }
