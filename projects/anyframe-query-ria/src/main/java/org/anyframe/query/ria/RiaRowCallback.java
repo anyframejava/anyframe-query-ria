@@ -25,7 +25,7 @@ import org.anyframe.query.impl.Pagination;
 public interface RiaRowCallback extends RowMetadataCallbackHandler {
 
 	/**
-	 * set paging information for RiaQueryService
+	 * set paging information for IRiaQueryService
 	 * 
 	 * @param pagination
 	 */
