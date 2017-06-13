@@ -65,7 +65,8 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 							+ "So, you must specify a proper pagingSQLGenerator in PagingJdbcTemplate configuration. "
 							+ "If you can't find a proper pagingSQLGenerator, you can define a DefaultPagingSQLGenerator as pagingSQLGenerator."
 							+ "But you must read notice of that class before using a DefaultPagingSQLGenerator.");
-			throw new QueryServiceException("Query Service : pagingSQLGenerator needs to be defined for PagingJdbcTemplate. \n So, you must specify a proper pagingSQLGenerator in PagingJdbcTemplate configuration. \n If you can't find a proper pagingSQLGenerator, you can define a DefaultPagingSQLGenerator as pagingSQLGenerator. \n But you must read notice of that class before using a DefaultPagingSQLGenerator.");
+			throw new QueryServiceException(getMessageSource(),
+					"error.riaquery.common.checksqlgenerator", new Object[] {});
 		}
 	}
 	
@@ -91,7 +92,9 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
                     throw new Exception("Velocity log file doesn't exists.");
             }
         } catch (Exception e) {
-            QueryService.LOGGER.error("Query Service : Fail to initialize Velocity.", e);
+            QueryService.LOGGER.error(messageSource.getMessage(
+                "error.query.initialize.velocity", new String[] {}, Locale
+                    .getDefault()), e);
             throw new Exception("Query Service : Fail to initialize Velocity.",
                 e);
         }
@@ -211,7 +214,8 @@ public abstract class AbstractRiaQueryService extends QueryServiceImpl {
 			boolean isDynamic = getSqlRepository().isDynamicQueryStatement(
 					queryId);
 			if (!isDynamic)
-				throw new QueryServiceException("Query Service : queryId ["+ queryId + "] is not dynamic statements.");
+				throw new QueryServiceException(getMessageSource(),
+						"error.query.check.dynamic", new Object[] { queryId });
 
 			QueryInfo queryInfo = (QueryInfo) getSqlRepository()
 					.getQueryInfos().get(queryId);
